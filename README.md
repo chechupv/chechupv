@@ -1,84 +1,33 @@
-# Hi, I'm Zhijian Wu Wang 👋
+<h1 align="center">Zhijian Wu Wang</h1>
 
-🎓 Computer Engineering Student at Universitat Politècnica de València (UPV)  
-💻 Passionate about Software Architecture, Distributed Systems & Embedded Systems  
-🚀 Builder of real-world projects combining backend, frontend and hardware  
-
----
-
-## 🛠 Tech Stack
-
-### Backend
-- Java & Spring Boot
-- Node.js
-- C#
-- Python
-
-### Frontend
-- React (Vite)
-- HTML / CSS
-- JavaFX
-
-### Databases
-- PostgreSQL
-- MySQL
-
-### DevOps & Tools
-- Docker
-- Git & GitHub
-- Linux
-- Maven
-
-### Hardware / IoT
-- ESP32
-- Arduino
-- Sensors (BMP280, MPU6050, GPS modules)
+<p align="center">
+  Computer Engineering Student · Backend & Full Stack Developer
+</p>
 
 ---
 
-## 📌 Featured Projects
+## 🚀 Technologies I Use
 
-### 🗳 Votify
-Multi-criteria digital voting platform built with:
-- Spring Boot
-- PostgreSQL
-- Docker
-- React
-
-Focus: scalable architecture, layered design, REST APIs.
-
----
-
-### 🏥 ManteHos
-Hospital maintenance management system.
-- C#
-- Entity Framework
-- Layered architecture (DAL / Service / GUI)
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" height="60" alt="Java"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" height="60" alt="Node.js"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" height="60" alt="C#"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" height="60" alt="Python"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" height="60" alt="MySQL"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" height="60" alt="React"/>
+</p>
 
 ---
 
-### 🚀 Rocket Telemetry Project
-Embedded system for rocket flight data collection.
-- ESP32-S3
-- Sensor fusion
-- Python data processing
+## 💻 About Me
+
+🎓 Computer Engineering Student at UPV  
+🛠 Interested in Software Architecture, Distributed Systems and IoT  
+🚀 Always building and learning new technologies  
 
 ---
 
-## 📊 Currently Learning
-- Advanced Distributed Systems
-- Software Quality Models (ISO 25010)
-- Clean Architecture & DDD
+## 📫 Contact
 
----
-
-## 🌍 Languages
-- Spanish
-- English
-- Chinese
-
----
-
-## 📫 Connect with me
 - LinkedIn: (add link)
 - Email: (add email)
