@@ -24,26 +24,23 @@
 
 ---
 
-### Socials
+## Socials
 
 <p align="center">
-  <a href="https://www.linkedin.com/in/zhijian-wu-wang-b208962b9/" target="_blank">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" height="45" alt="LinkedIn"/>
+  <a href="https://www.linkedin.com/in/zhijian-wu-wang-b208962b9/">
+    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
   </a>
-  &nbsp;&nbsp;
-
-  <a href="https://codeforces.com/profile/ZGDX_Chech" target="_blank">
-    <img src="https://sta.codeforces.com/s/0/favicon-32x32.png" height="45" alt="Codeforces"/>
+  &nbsp;
+  <a href="https://codeforces.com/profile/ZGDX_Chech">
+    <img src="https://img.shields.io/badge/Codeforces-1F8ACB?style=for-the-badge&logo=codeforces&logoColor=white"/>
   </a>
-  &nbsp;&nbsp;
-
-  <a href="https://leetcode.com/u/ZGDX_Chech/" target="_blank">
-    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/leetcode.svg" height="45" style="filter: invert(1);" alt="LeetCode"/>
+  &nbsp;
+  <a href="https://leetcode.com/u/ZGDX_Chech/">
+    <img src="https://img.shields.io/badge/LeetCode-FFA116?style=for-the-badge&logo=leetcode&logoColor=black"/>
   </a>
-  &nbsp;&nbsp;
-
-  <a href="https://x.com/zgdx_chech" target="_blank">
-    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" height="45" style="filter: invert(1);" alt="X"/>
+  &nbsp;
+  <a href="https://x.com/zgdx_chech">
+    <img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white"/>
   </a>
 </p>
 
