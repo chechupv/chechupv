@@ -6,7 +6,7 @@
 
 ---
 
-## 🚀 Technologies I Use
+## Technologies
 
 <p align="center">
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" height="60" alt="Java"/>
@@ -24,23 +24,26 @@
 
 ---
 
-## 🌐 Socials
+### Socials
 
 <p align="center">
   <a href="https://www.linkedin.com/in/zhijian-wu-wang-b208962b9/" target="_blank">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" height="40" alt="LinkedIn"/>
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" height="45" alt="LinkedIn"/>
   </a>
   &nbsp;&nbsp;
+
   <a href="https://codeforces.com/profile/ZGDX_Chech" target="_blank">
-    <img src="https://sta.codeforces.com/s/0/favicon-32x32.png" height="40" alt="Codeforces"/>
+    <img src="https://sta.codeforces.com/s/0/favicon-32x32.png" height="45" alt="Codeforces"/>
   </a>
   &nbsp;&nbsp;
+
   <a href="https://leetcode.com/u/ZGDX_Chech/" target="_blank">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" height="40" alt="LeetCode"/>
+    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/leetcode.svg" height="45" style="filter: invert(1);" alt="LeetCode"/>
   </a>
   &nbsp;&nbsp;
+
   <a href="https://x.com/zgdx_chech" target="_blank">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/twitter/twitter-original.svg" height="40" alt="X"/>
+    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" height="45" style="filter: invert(1);" alt="X"/>
   </a>
 </p>
 
