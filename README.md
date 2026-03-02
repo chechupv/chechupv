@@ -3,7 +3,7 @@
 <p align="center">
   🎓 3rd Year Software Engineering Student at UPV  
   <br/>
-  💻 Interested in building projects with solid software architecture
+  Interested in building projects with solid software architecture
 </p>
 
 ---
