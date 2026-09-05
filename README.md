@@ -1,7 +1,7 @@
 <h1 align="center">Zhijian Wu Wang</h1>
 
 <p align="center">
-  🎓 3rd Year Software Engineering Student at UPV  
+  🎓 Last Year Software Engineering Student at UPV  
   <br/>
   Interested in building projects with solid software architecture
 </p>
