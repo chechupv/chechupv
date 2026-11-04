@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw an animated Chinese dragon (SVG) from a GitHub account's activity.
+"""Draw an animated silver ice dragon (SVG) from a GitHub account's activity.
 
 * The dragon's length grows with the contributions of the last year.
 * It swims faster when the last 7 days were busy, and the pearl glows brighter.
@@ -13,22 +13,26 @@ import argparse
 import json
 import math
 import os
+import random
 import urllib.request
 
-W, H = 900, 270
-CY = 140
+W, H = 900, 300
+CY = 150
 FRAMES = 24
 
-# Palette
-OUTLINE = "#2b0508"
-RED_TOP, RED_BOTTOM = "#ef3b3b", "#9a0a1f"
-RED_FAR = "#7e0a1b"
-SCALE = "#7a0717"
-GOLD = "#f7bd34"
-GOLD_DARK = "#c98a1b"
-CREAM = "#ffe0a0"
-FIRE = "#ff7a1a"
-HORN = "#f3dcab"
+# Palette: silver body, white mane, dark talons and horns, blue glow.
+OUTLINE = "#1c2233"
+BODY_TOP, BODY_BOTTOM = "#ffffff", "#8e9ab0"
+FAR = "#7c889e"
+SCALE = "#6b7a92"
+BELLY = "#e4e9f1"
+BELLY_LINE = "#8a97ad"
+MANE = "#f6f8ff"
+MANE_EDGE = "#9fb0c9"
+HORN, HORN_HI = "#2f3650", "#7f9be6"
+TALON = "#14151b"
+GLOW, GLOW_DEEP = "#8fd8ff", "#3f6fe0"
+FIN_DARK, FIN_LIGHT = "#222d4a", "#6f8fe8"
 
 
 # ---------------------------------------------------------------- data ----
@@ -114,6 +118,12 @@ def poly(points):
     return "M" + "L".join(pt(p) for p in points) + "Z"
 
 
+def leaf(base1, base2, tip, bulge):
+    """A tapered strand from two base points to a tip, bulging sideways."""
+    mid = mul(add(add(base1, base2), mul(tip, 2)), 0.25)
+    return f"M{pt(base1)}Q{pt(add(mid, bulge))} {pt(tip)}Q{pt(sub(mid, mul(bulge, 0.3)))} {pt(base2)}Z"
+
+
 # -------------------------------------------------------------- dragon ----
 class Dragon:
     def __init__(self, total, week):
@@ -125,13 +135,14 @@ class Dragon:
 
     # spine ---------------------------------------------------------------
     def spine(self, s, ph):
-        amp = 7 + 36 * smoothstep(0.0, 0.45, s)
+        amp = 7 + 38 * smoothstep(0.0, 0.45, s)
         x = self.xh - s * self.L
         y = CY + amp * math.sin(2 * math.pi * 1.55 * s - ph)
         return (x, y)
 
     def frame_at(self, s, ph):
         """Centre point, tail-ward tangent and dorsal (upward) normal at s."""
+        s = min(1.0, max(0.0, s))
         e = 0.003
         a = self.spine(max(0.0, s - e), ph)
         b = self.spine(min(1.0, s + e), ph)
@@ -144,7 +155,7 @@ class Dragon:
     @staticmethod
     def hw(s):
         """Half-width of the body."""
-        return (14 + 6 * smoothstep(0.0, 0.14, s)) * (1 - 0.86 * smoothstep(0.32, 1.0, s))
+        return (13 + 6 * smoothstep(0.0, 0.14, s)) * (1 - 0.84 * smoothstep(0.32, 1.0, s))
 
     def steps(self, start, end, k):
         """Positions along the body spaced proportionally to its width."""
@@ -163,9 +174,7 @@ class Dragon:
             w = self.hw(s)
             upper.append(add(c, mul(n, w)))
             lower.append(sub(c, mul(n, w)))
-        c, t, _ = self.frame_at(1.0, ph)
-        tip = add(c, mul(t, 5))
-        return curve(upper + [tip] + lower[::-1], closed=True)
+        return curve(upper + lower[::-1], closed=True)
 
     def strip(self, ph, a, b, s0, s1, count=30):
         """A band along the body between lateral offsets a and b (in half-widths)."""
@@ -180,7 +189,7 @@ class Dragon:
 
     def belly_lines(self, ph):
         out = []
-        for s in self.steps(0.03, 0.95, 0.55):
+        for s in self.steps(0.03, 0.97, 0.5):
             c, t, n = self.frame_at(s, ph)
             w = self.hw(s)
             a = add(c, mul(n, -0.25 * w))
@@ -191,80 +200,97 @@ class Dragon:
 
     def scales(self, ph):
         out = []
-        for row, (offset, shift) in enumerate(((0.62, 0.0), (0.12, 0.5))):
-            for s in self.steps(0.04 + shift * 0.012, 0.93, 0.62):
+        for offset, shift in ((0.66, 0.0), (0.2, 0.5)):
+            for s in self.steps(0.04 + shift * 0.012, 0.95, 0.55):
                 c, t, n = self.frame_at(s, ph)
                 w = self.hw(s)
-                r = 0.3 * w
+                r = 0.27 * w
                 p = add(c, mul(n, offset * w))
                 a = add(p, mul(n, r))
                 b = sub(p, mul(n, r))
-                q = add(p, mul(t, 1.5 * r))
+                q = add(p, mul(t, 1.6 * r))
                 out.append(f"M{pt(a)}Q{pt(q)} {pt(b)}")
         return "".join(out)
 
-    def dorsal(self, ph):
-        ss = self.steps(0.02, 0.9, 0.95)
+    def mane(self, ph, back):
+        """Long white strands flowing from the neck and the front of the back."""
+        out = []
+        ss = self.steps(0.0, 0.62, 0.75)
+        for k, s in enumerate(ss):
+            if (k % 2 == 0) != back:
+                continue
+            c, t, n = self.frame_at(s, ph)
+            w = self.hw(s)
+            length = (10 + 50 * (1 - s / 0.62) ** 1.2) * (1.1 if back else 0.8)
+            sway = 0.28 * math.sin(ph * 1.5 - s * 9 + k)
+            d = unit(rot(add(mul(n, 0.42), mul(t, 0.9)), -sway))
+            b1 = add(c, mul(n, 0.55 * w))
+            b2 = add(self.frame_at(s + 0.05, ph)[0], mul(n, 0.55 * w))
+            tip = add(add(b1, mul(d, length + w)), mul(n, -0.12 * length))
+            out.append(leaf(b1, b2, tip, mul(rot(d, -math.pi / 2), 0.38 * length)))
+        return "".join(out)
+
+    def ridge(self, ph):
+        """Small silver spikes on the rear half of the back."""
+        ss = self.steps(0.56, 0.94, 0.9)
         pts = []
         for k, s in enumerate(ss):
             c, _, n = self.frame_at(s, ph)
             w = self.hw(s)
             pts.append(add(c, mul(n, 0.6 * w)))
             gap = (ss[k + 1] - s) if k + 1 < len(ss) else 0.01
-            ct, _, nt = self.frame_at(min(1.0, s + 0.75 * gap), ph)
-            h = 4 + 9 * (1 - s) + 1.5 * math.sin(ph * 2 + k)
-            pts.append(add(ct, mul(nt, self.hw(s + 0.75 * gap) + h)))
+            ct, _, nt = self.frame_at(s + 0.75 * gap, ph)
+            pts.append(add(ct, mul(nt, self.hw(s + 0.75 * gap) + 3 + 5 * (1 - s))))
         for s in reversed(ss):
             pts.append(self.frame_at(s, ph)[0])
         return poly(pts)
 
-    def tail_fire(self, ph, inner):
-        c, t, _ = self.frame_at(1.0, ph)
-        out = []
-        for k, ang in enumerate((-0.85, -0.42, 0.0, 0.42, 0.85)):
-            length = (26 + 16 * math.cos(ang)) * (0.62 if inner else 1.0)
-            d = rot(t, ang + 0.18 * math.sin(ph * 2 + k * 1.3))
-            p = rot(d, math.pi / 2)
-            base_w = 3.5 if inner else 5
-            mid = add(c, mul(d, length * 0.55))
-            tip = add(add(c, mul(d, length)), mul(p, 5 * math.sin(ph + k)))
-            out.append(
-                f"M{pt(add(c, mul(p, base_w)))}Q{pt(add(mid, mul(p, base_w * 1.6)))} {pt(tip)}"
-                f"Q{pt(add(mid, mul(p, -base_w * 0.4)))} {pt(sub(c, mul(p, base_w)))}Z"
-            )
-        return "".join(out)
+    def tail_fan(self, ph):
+        """Fan-shaped tail fin: (fin outline, rib lines)."""
+        c, t, n = self.frame_at(0.985, ph)
+        flap = 0.25 * math.sin(ph - 1.2)
+        angles = [-1.15 + 2.3 * i / 8 + flap for i in range(9)]
+        tips = []
+        for i, ang in enumerate(angles):
+            length = 34 + 14 * math.cos(ang * 1.2) + 4 * math.sin(ph * 2 + i)
+            tips.append(add(c, mul(rot(t, ang), length)))
+        d = f"M{pt(c)}L{pt(tips[0])}"
+        for a, b in zip(tips, tips[1:]):
+            q = add(mul(add(a, b), 0.5), mul(sub(c, mul(add(a, b), 0.5)), 0.22))
+            d += f"Q{pt(q)} {pt(b)}"
+        d += "Z"
+        ribs = "".join(f"M{pt(c)}L{pt(add(c, mul(sub(p, c), 0.9)))}" for p in tips[1:-1])
+        return d, ribs
 
     def leg(self, ph, s, front, far):
-        """Returns (limb path, claws path, elbow tuft path)."""
+        """Returns (limb path, talons path, elbow wisp path)."""
         c, t, n = self.frame_at(s, ph)
         fwd, down = mul(t, -1), mul(n, -1)
         hip = add(c, mul(n, -0.35 * self.hw(s)))
         swing = 0.45 * math.sin(ph + (0 if front else math.pi) + (0.6 if far else 0))
         if front:
             a = 0.55 + swing
-            knee = add(hip, mul(add(mul(down, math.cos(a)), mul(fwd, -math.sin(a))), 21))
+            knee = add(hip, mul(add(mul(down, math.cos(a)), mul(fwd, -math.sin(a))), 22))
             fore = unit(add(mul(down, 0.55), mul(fwd, 0.85)))
         else:
             a = 0.65 + swing
-            knee = add(hip, mul(add(mul(down, math.cos(a)), mul(fwd, math.sin(a))), 21))
+            knee = add(hip, mul(add(mul(down, math.cos(a)), mul(fwd, math.sin(a))), 22))
             fore = unit(add(mul(down, 0.75), mul(fwd, -0.65)))
         foot = add(knee, mul(fore, 16))
         limb = f"M{pt(hip)}L{pt(knee)}L{pt(foot)}"
-        claws = []
-        for ang in (-0.6, 0.0, 0.6):
+        talons = []
+        for ang in (-0.75, -0.25, 0.25, 0.75):
             d = rot(fore, ang)
-            tip = add(foot, mul(d, 8))
-            q = add(add(foot, mul(d, 4)), mul(rot(d, math.pi / 2), 1.8))
-            claws.append(f"M{pt(foot)}Q{pt(q)} {pt(tip)}")
+            hook = rot(d, math.pi / 2)
+            tip = add(add(foot, mul(d, 11)), mul(hook, 4))
+            q = add(foot, mul(d, 8))
+            talons.append(f"M{pt(foot)}Q{pt(q)} {pt(tip)}")
         back = mul(fwd, -1)
-        tuft = poly([
-            add(knee, mul(rot(back, 0.5), 2)),
-            add(knee, mul(rot(back, -0.35), 13)),
-            add(knee, mul(rot(back, -0.9), 3)),
-            add(knee, mul(rot(back, -1.1), 10)),
-            add(knee, mul(down, 2)),
-        ])
-        return limb, "".join(claws), tuft
+        wisp = leaf(
+            add(knee, mul(down, 3)), add(knee, mul(n, 3)),
+            add(knee, mul(rot(back, -0.4 + 0.15 * math.sin(ph * 2)), 20)), mul(n, 3),
+        )
+        return limb, "".join(talons), wisp
 
     def head_pose(self, ph):
         c, t, _ = self.frame_at(0.0, ph)
@@ -272,47 +298,55 @@ class Dragon:
         return f"{num(c[0])} {num(c[1])}", num(ang)
 
     @staticmethod
+    def head_mane(ph):
+        """Flowing white hair from the back of the head (local head coords)."""
+        out = []
+        roots = ((8, -17, -2.55), (4, -12, -2.75), (1, -6, -2.9), (0, 0, -3.05), (2, 6, -3.2), (6, 11, -3.35))
+        for k, (x, y, ang) in enumerate(roots):
+            length = 66 - abs(k - 2) * 7
+            ang += 0.14 * math.sin(ph * 1.5 + k * 0.9)
+            d = (math.cos(ang), math.sin(ang))
+            tip = (x + d[0] * length, y + d[1] * length)
+            out.append(leaf((x, y - 3), (x + 2, y + 4), tip, mul(rot(d, math.pi / 2), 15 + 4 * math.sin(ph + k))))
+        return "".join(out)
+
+    @staticmethod
     def whiskers(ph):
-        sway = math.sin(ph)
-        sway2 = math.sin(ph + 1.1)
+        s1, s2 = math.sin(ph), math.sin(ph + 1.1)
         return (
-            f"M58,4C68,14 {num(52 + 3 * sway)},{num(26 + 3 * sway)} {num(22 + 6 * sway)},{num(32 + 5 * sway2)}"
-            f"M60,-4C70,-16 {num(54 + 3 * sway2)},{num(-30 - 3 * sway)} {num(26 + 6 * sway2)},{num(-36 - 4 * sway)}"
+            f"M58,4C70,18 {num(40 + 5 * s1)},{num(30 + 4 * s1)} {num(4 + 10 * s1)},{num(40 + 7 * s2)}"
+            f"M60,-4C74,-20 {num(44 + 5 * s2)},{num(-36 - 4 * s1)} {num(8 + 10 * s2)},{num(-46 - 6 * s1)}"
         )
 
     def pearl_pos(self, ph):
-        return f"{num(self.xh + 150)} {num(CY - 14 + 7 * math.sin(ph))}"
+        return f"{num(self.xh + 150)} {num(CY - 16 + 7 * math.sin(ph))}"
 
 
 # ----------------------------------------------------------------- svg ----
 HEAD = f"""
-<path d="M6,-14Q-22,-28 -40,-28Q-22,-14 -2,-6Z" fill="{FIRE}" stroke="{OUTLINE}" stroke-width="1.3" stroke-linejoin="round"/>
-<path d="M4,8Q-16,18 -30,30Q-10,26 8,14Z" fill="{FIRE}" stroke="{OUTLINE}" stroke-width="1.3" stroke-linejoin="round"/>
-<path d="M4,-10Q-28,-14 -50,-12Q-26,-2 0,0Z" fill="{GOLD}" stroke="{OUTLINE}" stroke-width="1.3" stroke-linejoin="round"/>
-<path d="M2,2Q-26,10 -44,18Q-22,20 4,12Z" fill="{GOLD}" stroke="{OUTLINE}" stroke-width="1.3" stroke-linejoin="round"/>
-<path d="M2,-4Q-30,-2 -52,4Q-28,10 2,8Z" fill="{FIRE}" stroke="{OUTLINE}" stroke-width="1.3" stroke-linejoin="round"/>
 <g stroke-linecap="round" fill="none">
-  <path d="M10,-14C0,-30 -14,-36 -30,-42M-6,-30C-4,-40 -10,-46 -16,-52" stroke="{OUTLINE}" stroke-width="7"/>
-  <path d="M10,-14C0,-30 -14,-36 -30,-42M-6,-30C-4,-40 -10,-46 -16,-52" stroke="#b8996a" stroke-width="4.5"/>
-  <path d="M15,-12C5,-28 -9,-34 -25,-38M-1,-27C1,-38 -3,-44 -9,-50" stroke="{OUTLINE}" stroke-width="7.5"/>
-  <path d="M15,-12C5,-28 -9,-34 -25,-38M-1,-27C1,-38 -3,-44 -9,-50" stroke="{HORN}" stroke-width="5"/>
+  <path d="M10,-14C0,-32 -18,-40 -40,-46M-8,-32C-6,-44 -14,-50 -22,-58M-24,-40C-28,-50 -36,-54 -46,-56" stroke="{OUTLINE}" stroke-width="6.5"/>
+  <path d="M10,-14C0,-32 -18,-40 -40,-46M-8,-32C-6,-44 -14,-50 -22,-58M-24,-40C-28,-50 -36,-54 -46,-56" stroke="#4a5270" stroke-width="4"/>
+  <path d="M15,-12C5,-30 -12,-37 -34,-41M-3,-29C-1,-41 -8,-48 -15,-55M-19,-36C-22,-46 -30,-50 -40,-52" stroke="{OUTLINE}" stroke-width="7.5"/>
+  <path d="M15,-12C5,-30 -12,-37 -34,-41M-3,-29C-1,-41 -8,-48 -15,-55M-19,-36C-22,-46 -30,-50 -40,-52" stroke="{HORN}" stroke-width="5"/>
+  <path d="M13,-15C4,-30 -12,-36 -32,-40" stroke="{HORN_HI}" stroke-width="1.4" stroke-opacity="0.8"/>
 </g>
-<path d="M2,8C20,10 38,12 54,12C57,16 53,21 46,21C30,23 14,22 0,18Z" fill="#b30c25" stroke="{OUTLINE}" stroke-width="1.4"/>
-<path d="M14,6C30,8 44,8 57,6L55,13C40,13 26,12 14,10Z" fill="#3d0610"/>
-<path d="M30,10C40,10 47,11 52,15C55,19 59,19 61,15M57,18C59,21 62,21 64,19" stroke="#ff6b81" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-<path d="M50,13l2,-6l2.2,6ZM40,13l1.6,-4.5l1.8,4.5Z" fill="#fff8e7"/>
+<path d="M2,8C20,10 38,12 54,12C57,16 53,21 46,21C30,23 14,22 0,18Z" fill="#c3cbd9" stroke="{OUTLINE}" stroke-width="1.4"/>
+<path d="M14,6C30,8 44,8 57,6L55,13C40,13 26,12 14,10Z" fill="#23172b"/>
+<path d="M50,13l2,-6l2.2,6ZM40,13l1.6,-4.5l1.8,4.5ZM46,7l1.5,5l1.7,-5Z" fill="#ffffff"/>
 <path d="M-6,-12C0,-20 10,-22 18,-19C26,-16 34,-15 44,-13C52,-12 58,-14 63,-10C68,-6 68,2 62,5C56,7 50,6 44,6C32,6 20,5 12,8C6,10 0,14 -6,14C-11,8 -11,-6 -6,-12Z" fill="url(#headGrad)" stroke="{OUTLINE}" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M40,-12Q46,-8 52,-11M30,-14Q36,-10 42,-13M50,-8Q55,-4 60,-8" stroke="{SCALE}" stroke-width="1" fill="none"/>
-<path d="M2,6L-9,20L4,14L-1,27L10,16L12,25L18,10Z" fill="{GOLD}" stroke="{OUTLINE}" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M22,20C22,28 18,36 9,43C22,39 29,30 31,21Z" fill="{GOLD}" stroke="{OUTLINE}" stroke-width="1.2"/>
-<path d="M14,-16C8,-23 1,-25 -8,-25C1,-20 5,-16 10,-13ZM14,-16C20,-23 31,-21 35,-15C29,-16 22,-15 18,-12Z" fill="{GOLD}" stroke="{OUTLINE}" stroke-width="1.2" stroke-linejoin="round"/>
-<ellipse cx="26" cy="-10" rx="5.2" ry="3.7" fill="#ffe066" stroke="{OUTLINE}" stroke-width="1.3"/>
-<ellipse cx="27" cy="-10" rx="1.4" ry="3.1" fill="#140303"/>
+<path d="M40,-12Q46,-8 52,-11M30,-14Q36,-10 42,-13M50,-8Q55,-4 60,-8M4,-6Q9,-2 14,-5M6,2Q11,6 16,3" stroke="{SCALE}" stroke-width="1" fill="none"/>
+<path d="M4,6C-4,14 -10,24 -22,30C-8,28 0,22 6,16C4,24 0,32 -6,40C6,34 12,24 14,12Z" fill="{MANE}" stroke="{MANE_EDGE}" stroke-width="1"/>
+<path d="M22,20C22,30 14,42 0,52C18,46 28,34 31,21Z" fill="{MANE}" stroke="{MANE_EDGE}" stroke-width="1"/>
+<path d="M14,-16C8,-23 1,-25 -8,-25C1,-20 5,-16 10,-13ZM14,-16C20,-23 31,-21 35,-15C29,-16 22,-15 18,-12Z" fill="#dfe5f0" stroke="{OUTLINE}" stroke-width="1.2" stroke-linejoin="round"/>
+<circle cx="26" cy="-10" r="9" fill="url(#eyeGlow)"/>
+<ellipse cx="26" cy="-10" rx="5.2" ry="3.7" fill="{GLOW}" stroke="{OUTLINE}" stroke-width="1.3"/>
+<ellipse cx="27" cy="-10" rx="1.3" ry="3.1" fill="#0b1020"/>
 <circle cx="25.2" cy="-11.4" r="0.9" fill="#fff"/>
 <path d="M60,-6c3,-2 5,1 3,3c-2,1 -3,-1 -1,-2" stroke="{OUTLINE}" stroke-width="1.2" fill="none"/>
 """
 
-CLOUD = """<g fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.32" stroke-width="2" stroke-linecap="round">
+CLOUD = """<g fill="currentColor" fill-opacity="0.07" stroke="currentColor" stroke-opacity="0.3" stroke-width="2" stroke-linecap="round">
 <path d="M-44,12Q-46,-6 -26,-8Q-22,-26 -2,-23Q12,-36 30,-22Q50,-24 50,-4Q62,2 54,12Z"/>
 <path d="M-26,-8q8,10 18,3q6,-7 -1,-10q-6,-1 -6,5M30,-22q-6,12 4,16q8,2 8,-6q-1,-5 -6,-3" fill="none"/>
 </g>"""
@@ -334,6 +368,20 @@ def transform_anim(kind, frames, dur):
     )
 
 
+def snow():
+    rng = random.Random(7)
+    flakes = []
+    for _ in range(22):
+        x, r = rng.uniform(0, W + 200), rng.uniform(0.8, 2.2)
+        dur, begin = rng.uniform(7, 13), -rng.uniform(0, 13)
+        flakes.append(
+            f'<circle r="{r:.1f}"><animateTransform attributeName="transform" type="translate" '
+            f'from="{x:.0f} -10" to="{x - 160:.0f} {H + 10}" dur="{dur:.1f}s" begin="{begin:.1f}s" '
+            f'repeatCount="indefinite"/></circle>'
+        )
+    return f'<g fill="#a9c4e8" fill-opacity="0.75">{"".join(flakes)}</g>'
+
+
 def render(total, week, login=""):
     d = Dragon(total, week)
     phases = [2 * math.pi * k / FRAMES for k in range(FRAMES)]
@@ -351,17 +399,16 @@ def render(total, week, login=""):
         legs[name] = ([p[0] for p in per], [p[1] for p in per], [p[2] for p in per])
 
     def draw_leg(name, color):
-        limb, claws, tuft = legs[name]
+        limb, talons, wisp = legs[name]
         return "".join([
-            animated(f'fill="{FIRE}" stroke="{OUTLINE}" stroke-width="1.1" stroke-linejoin="round"', tuft, dur),
+            animated(f'fill="{MANE}" stroke="{MANE_EDGE}" stroke-width="0.9"', wisp, dur),
             animated(f'fill="none" stroke="{OUTLINE}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"', limb, dur),
             animated(f'fill="none" stroke="{color}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"', limb, dur),
-            animated(f'fill="none" stroke="{OUTLINE}" stroke-width="4" stroke-linecap="round"', claws, dur),
-            animated(f'fill="none" stroke="{GOLD}" stroke-width="2.2" stroke-linecap="round"', claws, dur),
+            animated(f'fill="none" stroke="{TALON}" stroke-width="2.8" stroke-linecap="round"', talons, dur),
         ])
 
     clouds = []
-    for i, (y, scale, offset) in enumerate(((60, 1.0, 0), (215, 0.8, -7), (110, 0.65, -13), (235, 1.1, -19))):
+    for y, scale, offset in ((55, 1.0, 0), (240, 0.8, -7), (110, 0.65, -13), (265, 1.1, -19)):
         clouds.append(
             f'<g transform="translate({W + 80} {y})">'
             f'<animateTransform attributeName="transform" type="translate" from="{W + 80} {y}" to="-90 {y}" '
@@ -369,6 +416,7 @@ def render(total, week, login=""):
             f'<g transform="scale({scale})">{CLOUD}</g></g>'
         )
 
+    fan = frames(d.tail_fan)
     pose = frames(d.head_pose)
     title = f"Dragon of {login}: {total} contributions this year, {week} in the last 7 days" if login else "Dragon"
 
@@ -377,52 +425,58 @@ def render(total, week, login=""):
         f"<title>{title}</title>",
         "<defs>",
         f'<linearGradient id="bodyGrad" gradientUnits="userSpaceOnUse" x1="0" y1="{CY - 50}" x2="0" y2="{CY + 50}">'
-        f'<stop offset="0" stop-color="{RED_TOP}"/><stop offset="1" stop-color="{RED_BOTTOM}"/></linearGradient>',
-        f'<linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{RED_TOP}"/>'
-        f'<stop offset="1" stop-color="#b30c25"/></linearGradient>',
-        f'<linearGradient id="fire" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="{GOLD}"/>'
-        f'<stop offset="1" stop-color="{FIRE}"/></linearGradient>',
-        '<radialGradient id="pearl" cx="0.38" cy="0.35" r="0.7"><stop offset="0" stop-color="#ffffff"/>'
-        '<stop offset="0.45" stop-color="#fff1c2"/><stop offset="1" stop-color="#ffb21a"/></radialGradient>',
-        '<radialGradient id="glow"><stop offset="0" stop-color="#ffcf4d" stop-opacity="0.9"/>'
-        '<stop offset="1" stop-color="#ff7a1a" stop-opacity="0"/></radialGradient>',
+        f'<stop offset="0" stop-color="{BODY_TOP}"/><stop offset="1" stop-color="{BODY_BOTTOM}"/></linearGradient>',
+        f'<linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{BODY_TOP}"/>'
+        f'<stop offset="1" stop-color="#a7b2c5"/></linearGradient>',
+        f'<radialGradient id="fin" cx="0" cy="0.5" r="1"><stop offset="0" stop-color="{FIN_DARK}"/>'
+        f'<stop offset="0.75" stop-color="#3b4f8c"/><stop offset="1" stop-color="{FIN_LIGHT}"/></radialGradient>',
+        f'<radialGradient id="eyeGlow"><stop offset="0" stop-color="{GLOW}" stop-opacity="0.9"/>'
+        f'<stop offset="1" stop-color="{GLOW_DEEP}" stop-opacity="0"/></radialGradient>',
+        f'<radialGradient id="pearl" cx="0.38" cy="0.35" r="0.7"><stop offset="0" stop-color="#ffffff"/>'
+        f'<stop offset="0.5" stop-color="#cdeeff"/><stop offset="1" stop-color="{GLOW_DEEP}"/></radialGradient>',
+        f'<radialGradient id="glow"><stop offset="0" stop-color="{GLOW}" stop-opacity="0.9"/>'
+        f'<stop offset="1" stop-color="{GLOW_DEEP}" stop-opacity="0"/></radialGradient>',
         '<filter id="shadow" x="-10%" y="-20%" width="120%" height="140%">'
-        '<feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/></filter>',
+        '<feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#0b1020" flood-opacity="0.3"/></filter>',
         "</defs>",
         *clouds,
+        snow(),
         '<g filter="url(#shadow)">',
-        draw_leg("ff", RED_FAR),
-        draw_leg("bf", RED_FAR),
-        animated(f'fill="url(#fire)" stroke="{OUTLINE}" stroke-width="1.2" stroke-linejoin="round"', frames(d.dorsal), dur),
-        animated(f'fill="{FIRE}" stroke="{OUTLINE}" stroke-width="1.2"', frames(lambda ph: d.tail_fire(ph, False)), dur),
-        animated(f'fill="{GOLD}"', frames(lambda ph: d.tail_fire(ph, True)), dur),
+        draw_leg("ff", FAR),
+        draw_leg("bf", FAR),
+        animated(f'fill="{MANE}" stroke="{MANE_EDGE}" stroke-width="1"', frames(lambda ph: d.mane(ph, True)), dur),
+        animated(f'fill="#c9d2e0" stroke="{OUTLINE}" stroke-width="1.1" stroke-linejoin="round"', frames(d.ridge), dur),
+        animated(f'fill="url(#fin)" stroke="{OUTLINE}" stroke-width="1.3" stroke-linejoin="round"', [f[0] for f in fan], dur),
+        animated(f'fill="none" stroke="{GLOW}" stroke-width="1" stroke-opacity="0.7"', [f[1] for f in fan], dur),
         animated(f'fill="url(#bodyGrad)" stroke="{OUTLINE}" stroke-width="1.8" stroke-linejoin="round"', frames(d.body), dur),
-        animated('fill="#ffffff" fill-opacity="0.16"', frames(lambda ph: d.strip(ph, 0.3, 0.78, 0.03, 0.9)), dur),
-        animated(f'fill="{CREAM}" stroke="{GOLD_DARK}" stroke-width="0.8"', frames(lambda ph: d.strip(ph, -0.22, -0.97, 0.02, 0.96)), dur),
-        animated(f'fill="none" stroke="{GOLD_DARK}" stroke-width="1.1"', frames(d.belly_lines), dur),
-        animated(f'fill="none" stroke="{SCALE}" stroke-width="1.15" stroke-opacity="0.85"', frames(d.scales), dur),
+        animated('fill="#ffffff" fill-opacity="0.35"', frames(lambda ph: d.strip(ph, 0.3, 0.78, 0.03, 0.9)), dur),
+        animated(f'fill="{BELLY}" stroke="{BELLY_LINE}" stroke-width="0.8"', frames(lambda ph: d.strip(ph, -0.22, -0.97, 0.02, 0.97)), dur),
+        animated(f'fill="none" stroke="{BELLY_LINE}" stroke-width="1"', frames(d.belly_lines), dur),
+        animated(f'fill="none" stroke="{SCALE}" stroke-width="1.1" stroke-opacity="0.85"', frames(d.scales), dur),
+        animated(f'fill="{MANE}" stroke="{MANE_EDGE}" stroke-width="1"', frames(lambda ph: d.mane(ph, False)), dur),
         draw_leg("fn", "url(#bodyGrad)"),
         draw_leg("bn", "url(#bodyGrad)"),
         # head
         f'<g transform="translate({pose[0][0]})">{transform_anim("translate", [p[0] for p in pose], dur)}',
         f'<g transform="rotate({pose[0][1]})">{transform_anim("rotate", [p[1] for p in pose], dur)}',
         '<g transform="scale(1.35)">',
-        animated(f'fill="none" stroke="{OUTLINE}" stroke-width="2.6" stroke-linecap="round"', frames(d.whiskers), dur),
-        animated(f'fill="none" stroke="{GOLD}" stroke-width="1.3" stroke-linecap="round"', frames(d.whiskers), dur),
+        animated(f'fill="{MANE}" stroke="{MANE_EDGE}" stroke-width="0.9"', frames(d.head_mane), dur),
+        animated(f'fill="none" stroke="{OUTLINE}" stroke-width="2.4" stroke-linecap="round"', frames(d.whiskers), dur),
+        animated(f'fill="none" stroke="{MANE}" stroke-width="1.3" stroke-linecap="round"', frames(d.whiskers), dur),
         HEAD,
         "</g></g></g>",
         "</g>",
-        # flaming pearl
+        # ice pearl
         f'<g transform="translate({d.pearl_pos(0)})">{transform_anim("translate", frames(d.pearl_pos), dur)}',
         f'<circle r="30" fill="url(#glow)" opacity="{d.glow:.2f}">'
-        '<animate attributeName="r" values="26;33;26" dur="2.4s" repeatCount="indefinite"/></circle>',
+        '<animate attributeName="r" values="26;34;26" dur="2.4s" repeatCount="indefinite"/></circle>',
         '<g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/>',
         "".join(
-            f'<path transform="rotate({a})" d="M0,-11C7,-16 6,-24 0,-28C9,-24 12,-14 6,-9Z" fill="{FIRE}" fill-opacity="0.85"/>'
+            f'<path transform="rotate({a})" d="M0,-11C7,-16 6,-24 0,-28C9,-24 12,-14 6,-9Z" fill="{GLOW}" fill-opacity="0.75"/>'
             for a in range(0, 360, 60)
         ),
         "</g>",
-        f'<circle r="11" fill="url(#pearl)" stroke="{GOLD_DARK}" stroke-width="1"/>',
+        f'<circle r="11" fill="url(#pearl)" stroke="{GLOW_DEEP}" stroke-width="1"/>',
         "</g>",
         "</svg>",
     ]
