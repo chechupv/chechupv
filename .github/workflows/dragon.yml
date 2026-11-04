@@ -1,5 +1,6 @@
-# Draws a red-and-gold "dragon" that eats the contribution grid, every night.
-# The images are pushed to the `output` branch and embedded in README.md.
+# Redraws an animated Chinese dragon every night from your GitHub activity:
+# it grows with the year's contributions and swims faster after a busy week.
+# The image is pushed to the `output` branch and embedded in README.md.
 
 name: Dragon
 
@@ -9,7 +10,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [.github/workflows/dragon.yml]
+    paths:
+      - .github/workflows/dragon.yml
+      - scripts/dragon.py
 
 permissions:
   contents: write
@@ -21,16 +24,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Draw the dragon from the contribution grid
-        uses: Platane/snk/svg-only@v3
-        with:
-          github_user_name: ${{ github.repository_owner }}
-          # color_dots: no contributions, then low -> high (exactly 5 colors)
-          outputs: |
-            dist/dragon.svg?color_snake=#c8102e&color_dots=#f3e9dc,#f5d77a,#e8b730,#c9921b,#9c6b0a
-            dist/dragon-dark.svg?color_snake=#de2910&color_dots=#2a1a1a,#7a4a12,#b8860b,#e0a526,#ffd700
+      - uses: actions/checkout@v7
 
-      - name: Push the images to the output branch
+      - name: Draw the dragon
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/dragon.py --login "${{ github.repository_owner }}" --out dist/dragon.svg
+
+      - name: Push the image to the output branch
         uses: crazy-max/ghaction-github-pages@v5
         with:
           target_branch: output

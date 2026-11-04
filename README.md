@@ -7,13 +7,9 @@
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/chechupv/chechupv/output/dragon-dark.svg"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chechupv/chechupv/output/dragon.svg"/>
-    <img src="https://raw.githubusercontent.com/chechupv/chechupv/output/dragon.svg" alt="A red dragon eating my GitHub contribution grid"/>
-  </picture>
+  <img src="https://raw.githubusercontent.com/chechupv/chechupv/output/dragon.svg" width="100%" alt="My dragon, redrawn every night from my GitHub activity"/>
   <br/>
-  <sub>🐉 My dragon — redrawn every night, it feeds on my contributions</sub>
+  <sub>🐉 My dragon — it grows with my contributions and swims faster after a busy week</sub>
 </p>
 
 ---
