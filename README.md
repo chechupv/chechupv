@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/chechupv/chechupv/output/dragon.svg" width="100%" alt="My dragon, redrawn every night from my GitHub activity"/>
   <br/>
-  <sub>🐉 My dragon — it grows with my contributions and flies faster after a busy week</sub>
+  <sub>🐉 Loong grows with my contributions and flies faster after a busy week</sub>
 </p>
 
 ---
