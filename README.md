@@ -75,5 +75,5 @@
 ---
 
 <p align="center">
-  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDNvajNsOGprZWZuZDk0Y2RubnFxeTh5ZWVsdHRmdGcza3diYmhibyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/bbsJth5YyYznK59xxq/giphy.gif" width="600"/>
+  <img src="https://i.pinimg.com/originals/c1/53/b0/c153b00f065224b65f352441a56938de.jpg" width="600" alt="Snow falling on a quiet street at night"/>
 </p>
