@@ -1,7 +1,7 @@
 <h1 align="center">Zhijian Wu Wang</h1>
 
 <p align="center">
-  🎓 Final-year Computer Engineering Student at UPV · Software Engineering
+  Final-year Computer Engineering Student at UPV · Software Engineering
   <br/>
   Interested in building projects with solid software architecture
 </p>
@@ -14,7 +14,7 @@
 
 ---
 
-## 💻 Tech Stack
+##  Tech Stack
 
 <p align="center">
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" height="60" title="Java"/>
@@ -48,7 +48,7 @@
 
 ---
 
-## 🌐 Socials
+##  Socials
 
 <p align="center">
   <a href="https://www.linkedin.com/in/zhijian-wu-wang-b208962b9/">
