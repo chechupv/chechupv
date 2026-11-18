@@ -7,9 +7,9 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/chechupv/chechupv/output/dragon.svg" width="100%" alt="My dragon, redrawn every night from my GitHub activity"/>
+  <img src="koi/koi.gif" width="256" alt="My koi, redrawn every night from my GitHub activity"/>
   <br/>
-  <sub>Loong grows with my contributions and flies faster after a busy week</sub>
+  <sub>Koi grows with my contributions and swims based on yesterday's activity</sub>
 </p>
 
 ---
