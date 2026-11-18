@@ -7,9 +7,11 @@
 </p>
 
 <p align="center">
-  <img src="koi/koi.gif" width="256" alt="My koi, redrawn every night from my GitHub activity"/>
+  <img src="koi/koi.gif" width="400" alt="My koi, redrawn every night from my GitHub activity"/>
   <br/>
   <sub>Koi grows with my contributions and swims based on yesterday's activity</sub>
+  <br/>
+  <sub>Made with <a href="https://github.com/yalongwastaken/git-koi">git-koi</a> by <a href="https://github.com/yalongwastaken">@yalongwastaken</a></sub>
 </p>
 
 ---
