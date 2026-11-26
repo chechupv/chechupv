@@ -1,0 +1,40 @@
+# Redraws output/bonsai.gif every night from your GitHub contributions.
+
+name: Bonsai
+
+on:
+  schedule:
+    # Forty minutes after the cards, so the pushes never race.
+    - cron: "20 1 * * *"
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/bonsai.yml]
+
+permissions:
+  contents: write
+
+concurrency: bonsai
+
+jobs:
+  bonsai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: egorthinks/git-bonsai@bec04c39f62731fdb28c3b82322ef21cbf3bdfac
+        with:
+          commit: "false"
+
+      - name: Commit the bonsai if it changed
+        shell: bash
+        run: |
+          git add output
+          if git diff --cached --quiet; then
+            echo "The bonsai is unchanged; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --quiet --message "bonsai: tend the bonsai"
+          git push --quiet
